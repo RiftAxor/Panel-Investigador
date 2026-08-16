@@ -31,7 +31,7 @@ Un navegador web moderno (Chrome, Firefox, Edge, Safari, etc.).
 
 1. **Descarga el código:** Clona este repositorio usando git o descarga el archivo ZIP directamente desde GitHub.
    ```bash
-   git clone https://github.com/RiftAxor/Panel-Investigador.git
+   git clone https://github.com/RiftAxor/Panel-Investigador
    ```
 2. **Abre la carpeta:** Navega hasta la carpeta del proyecto que acabas de descargar.
 3. **Inicia la aplicación:** Simplemente haz doble clic en el archivo `index.html` para abrirlo en tu navegador web predeterminado.
