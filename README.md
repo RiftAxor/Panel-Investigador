@@ -6,9 +6,7 @@ Un tablero de investigación interactivo al estilo "detective", diseñado para e
 
 ## 📸 Vistazo al Proyecto
 
-![Captura de pantalla principal de la aplicación - Reemplazar con imagen](ruta/a/tu/imagen1.png)
-
-![Detalle de las tarjetas y conexiones - Reemplazar con imagen](ruta/a/tu/imagen2.png)
+proximamente
 
 ---
 
@@ -33,7 +31,7 @@ Un navegador web moderno (Chrome, Firefox, Edge, Safari, etc.).
 
 1. **Descarga el código:** Clona este repositorio usando git o descarga el archivo ZIP directamente desde GitHub.
    ```bash
-   git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git
+   git clone https://github.com/RiftAxor/Panel-Investigador.git
    ```
 2. **Abre la carpeta:** Navega hasta la carpeta del proyecto que acabas de descargar.
 3. **Inicia la aplicación:** Simplemente haz doble clic en el archivo `index.html` para abrirlo en tu navegador web predeterminado.
