@@ -1,0 +1,388 @@
+/* =============================================
+   PANEL DE INVESTIGACIÓN — board.css
+   Tarjetas del tablero y puntos de conexión
+   ============================================= */
+
+/* === CARD BASE === */
+.card {
+  position: absolute;
+  min-width: 180px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border-s);
+  border-radius: var(--card-radius-override, var(--radius-m));
+  box-shadow: var(--glass-shadow);
+  cursor: default;
+  user-select: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  will-change: transform;
+  z-index: 1;
+}
+.card:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  border-color: var(--glass-border-s);
+  z-index: 5;
+}
+.card.selected {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow), var(--glass-shadow) !important;
+  z-index: 10;
+}
+.card.dragging {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+  z-index: 100;
+  opacity: 0.93;
+}
+
+/* Card accent bar */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--card-radius-override, var(--radius-m)) var(--card-radius-override, var(--radius-m)) 0 0;
+}
+.card-note::before    { background: linear-gradient(90deg, #eab308, #f59e0b); }
+.card-person::before  { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.card-image::before   { background: linear-gradient(90deg, #64748b, #94a3b8); }
+.card-event::before   { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.card-link::before    { background: linear-gradient(90deg, #a855f7, #c084fc); }
+.card-timeline::before { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+/* === CARD HEADER === */
+.card-header {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 12px 8px;
+  cursor: grab;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.card-header:active { cursor: grabbing; }
+.card-type-icon { font-size: 14px; flex-shrink: 0; margin-top: 3px; }
+.card-title {
+  flex: 1; font-size: 13px; font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-title-empty { color: var(--text-muted); font-style: italic; }
+
+.card-actions {
+  display: none; align-items: center; gap: 2px; flex-shrink: 0;
+}
+.card:hover .card-actions { display: flex; }
+.card-action-btn {
+  width: 22px; height: 22px;
+  background: transparent; border: none; border-radius: 4px;
+  color: var(--text-muted); font-size: 12px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s ease;
+}
+.card-action-btn:hover { background: var(--border); color: var(--text-primary); }
+.card-action-btn.delete:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* === CARD BODY === */
+.card-body {
+  padding: 0 12px 10px;
+  font-size: 13px; color: var(--text-secondary);
+  overflow: hidden;
+}
+
+/* === NOTE CARD === */
+.card-note .card-body {
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px; line-height: 1.65;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px; overflow-y: auto;
+}
+/* Note colored backgrounds */
+.card-note[data-color="#fef9c3"] { background: #fef9c3; border-color: #fde68a; }
+.card-note[data-color="#fef9c3"] .card-title { color: #78350f; }
+.card-note[data-color="#fef9c3"] .card-body { color: #92400e; }
+.card-note[data-color="#fce7f3"] { background: #fce7f3; border-color: #fbcfe8; }
+.card-note[data-color="#fce7f3"] .card-title { color: #831843; }
+.card-note[data-color="#fce7f3"] .card-body { color: #9d174d; }
+.card-note[data-color="#dcfce7"] { background: #dcfce7; border-color: #bbf7d0; }
+.card-note[data-color="#dcfce7"] .card-title { color: #14532d; }
+.card-note[data-color="#dcfce7"] .card-body { color: #166534; }
+.card-note[data-color="#dbeafe"] { background: #dbeafe; border-color: #bfdbfe; }
+.card-note[data-color="#dbeafe"] .card-title { color: #1e3a8a; }
+.card-note[data-color="#dbeafe"] .card-body { color: #1d4ed8; }
+.card-note[data-color="#f3e8ff"] { background: #f3e8ff; border-color: #e9d5ff; }
+.card-note[data-color="#f3e8ff"] .card-title { color: #581c87; }
+.card-note[data-color="#f3e8ff"] .card-body { color: #6b21a8; }
+.card-note[data-color="#1e293b"] { background: #1e293b; border-color: #334155; }
+.card-note[data-color="#1e293b"] .card-title { color: #e2e8f0; }
+.card-note[data-color="#1e293b"] .card-body { color: #94a3b8; }
+
+/* === PERSON CARD === */
+.card-person { min-width: 200px; }
+.person-card-inner {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding-bottom: 4px;
+}
+.person-avatar {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #fff;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+.person-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.person-info { flex: 1; min-width: 0; }
+.person-name { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.person-role-badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 99px; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.role-suspect  { background: rgba(239,68,68,0.2); color: #ef4444; }
+.role-witness  { background: rgba(234,179,8,0.2); color: #eab308; }
+.role-victim   { background: rgba(249,115,22,0.2); color: #f97316; }
+.role-detective { background: rgba(59,130,246,0.2); color: #3b82f6; }
+.role-accomplice { background: rgba(168,85,247,0.2); color: #a855f7; }
+.role-unknown  { background: rgba(100,116,139,0.2); color: #94a3b8; }
+.role-other    { background: rgba(100,116,139,0.15); color: #94a3b8; }
+.person-desc {
+  font-size: 12px; color: var(--text-muted);
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+
+/* === IMAGE CARD === */
+.card-image { min-width: 200px; }
+.image-card-img {
+  width: 100%; max-height: 200px; object-fit: cover;
+  border-radius: 0 0 0 0;
+  display: block;
+  margin-bottom: 8px;
+}
+.image-placeholder {
+  width: 100%; height: 120px;
+  background: var(--bg-input);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.image-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* === EVENT CARD === */
+.card-event { min-width: 200px; }
+.event-datetime {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--green);
+  font-weight: 600; margin-bottom: 6px;
+}
+.event-location {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.event-description {
+  font-size: 13px; color: var(--text-secondary);
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+}
+.event-importance {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-top: 6px;
+}
+.importance-low      { background: rgba(100,116,139,0.2); color: #94a3b8; }
+.importance-medium   { background: rgba(234,179,8,0.2); color: #eab308; }
+.importance-high     { background: rgba(249,115,22,0.2); color: #f97316; }
+.importance-critical { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+/* === LINK CARD === */
+.card-link { min-width: 200px; }
+.link-url-display {
+  font-size: 11px; color: var(--purple);
+  word-break: break-all; margin-bottom: 6px;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+}
+.link-desc {
+  font-size: 12px; color: var(--text-muted);
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.link-open-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px; padding: 4px 10px;
+  background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 99px; color: var(--purple);
+  font-size: 11px; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  transition: all 0.15s ease; pointer-events: all;
+}
+.link-open-btn:hover { background: rgba(168,85,247,0.25); }
+
+/* === TIMELINE CARD === */
+.card-timeline { min-width: 240px; }
+.timeline-card-list {
+  position: relative;
+  padding-left: 16px;
+  border-left: 2px solid var(--orange);
+  margin-left: 4px;
+}
+.timeline-card-item {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 10px;
+}
+.timeline-card-item:last-child { margin-bottom: 0; }
+.timeline-card-item::before {
+  content: '';
+  position: absolute;
+  left: -16px; top: 6px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  border: 2px solid var(--bg-card);
+}
+.tl-item-date { font-size: 10px; font-weight: 600; color: var(--orange); margin-bottom: 2px; }
+.tl-item-text { font-size: 12px; color: var(--text-secondary); }
+
+/* === CONNECTION POINTS === */
+.conn-point {
+  position: absolute;
+  width: 14px; height: 14px;
+  background: var(--bg-card);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 50%;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1), border-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: crosshair;
+}
+/* Show on card hover (always, not just in connect mode) */
+.card:hover .conn-point { opacity: 0.65; }
+/* Full opacity in connect mode */
+.tool-connect .conn-point { opacity: 0.85; }
+/* Hover: grow + accent color */
+.conn-point:hover {
+  opacity: 1 !important;
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.5);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+/* Source card while drawing */
+.conn-source .conn-point-n,
+.conn-source .conn-point-s,
+.conn-source .conn-point-e,
+.conn-source .conn-point-w {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 0.5;
+  animation: pulse-ring 1.2s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--accent-glow); }
+  60%  { box-shadow: 0 0 0 7px rgba(220,38,38,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+}
+/* Target card hover while drawing */
+.conn-target-hover { border-color: var(--accent) !important; }
+.conn-point.pt-target {
+  opacity: 1 !important;
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  transform: scale(1.6) !important;
+  box-shadow: 0 0 0 5px rgba(34,197,94,0.3) !important;
+}
+/* Positions (center on edge, 14px wide = -7px offset) */
+.conn-point-n { top: -8px;  left: calc(50% - 7px); }
+.conn-point-s { bottom: -8px; left: calc(50% - 7px); }
+.conn-point-e { right: -8px; top: calc(50% - 7px); }
+.conn-point-w { left: -8px;  top: calc(50% - 7px); }
+
+/* === RESIZE HANDLE === */
+.card-resize-handle {
+  position: absolute; bottom: 0; right: 0;
+  width: 16px; height: 16px;
+  cursor: se-resize;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.card:hover .card-resize-handle { opacity: 1; }
+.card-resize-handle::after {
+  content: '';
+  position: absolute; bottom: 4px; right: 4px;
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+}
+
+/* === SVG CONNECTIONS === */
+.connection-path {
+  fill: none;
+  stroke-width: var(--conn-width-override, 2.5);
+  transition: stroke-width 0.15s ease, filter 0.15s ease;
+  pointer-events: none;
+}
+.connection-path.selected {
+  stroke-width: calc(var(--conn-width-override, 2.5) + 1.5);
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+
+/* ── Color variants ── */
+.connection-path.color-red    { stroke: #ef4444; }
+.connection-path.color-yellow { stroke: #eab308; }
+.connection-path.color-blue   { stroke: #3b82f6; }
+.connection-path.color-green  { stroke: #22c55e; }
+.connection-path.color-white  { stroke: #cbd5e1; }
+
+/* Arrowhead markers stay on path */
+.connection-path.color-red    { marker-end: url(#arrow-red); }
+.connection-path.color-yellow { marker-end: url(#arrow-yellow); }
+.connection-path.color-blue   { marker-end: url(#arrow-blue); }
+.connection-path.color-green  { marker-end: url(#arrow-green); }
+.connection-path.color-white  { marker-end: url(#arrow-white); }
+
+.connection-path.style-dashed { stroke-dasharray: 9 6; }
+
+/* New-connection flash */
+@keyframes conn-flash {
+  0%   { stroke-width: 5; filter: drop-shadow(0 0 8px currentColor); }
+  100% { stroke-width: 2.5; filter: none; }
+}
+.conn-just-created { animation: conn-flash 0.8s ease forwards; }
+
+/* ── Label ── */
+.connection-label {
+  font-size: 11px; font-weight: 600; font-family: 'Inter', sans-serif;
+  fill: var(--text-1);
+  pointer-events: none; user-select: none;
+}
+.connection-label-bg {
+  fill: var(--glass-bg);
+  stroke: var(--glass-border-s); stroke-width: 1;
+}
+
+/* ── Temp drawing line ── */
+.connection-temp {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 10 6;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.connection-temp-dot {
+  fill: var(--accent);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* === CARD POP-IN === */
+@keyframes card-pop-in {
+  from { opacity: 0; transform: scale(0.75); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.card { animation: card-pop-in 0.22s cubic-bezier(0.34,1.56,0.64,1); }

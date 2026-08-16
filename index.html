@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tablero digital de investigación estilo detective. Conecta pistas, personas y eventos.">
+  <title>Panel de Investigación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       BOARD — full-screen
+       ══════════════════════════════════════════ -->
+  <div id="board-container" class="board-container">
+    <svg id="connections-svg" class="connections-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow-red"    markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#ef4444"/></marker>
+        <marker id="arrow-yellow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#eab308"/></marker>
+        <marker id="arrow-blue"   markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3b82f6"/></marker>
+        <marker id="arrow-green"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#22c55e"/></marker>
+        <marker id="arrow-white"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#cbd5e1"/></marker>
+      </defs>
+    </svg>
+    <div id="board-grid" class="board-grid" style="display:none;"></div>
+    <div id="board-world" class="board-world"></div>
+    <div id="board-empty-state" class="board-empty-state">
+      <div class="board-empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+        </svg>
+      </div>
+      <h2 class="board-empty-title">Tablero vacío</h2>
+      <p class="board-empty-sub">Abre el menú lateral para crear una investigación<br>o haz <strong>doble clic</strong> en el tablero para añadir una nota</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SIDEBAR BACKDROP
+       ══════════════════════════════════════════ -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+  <!-- ══════════════════════════════════════════
+       SIDEBAR — overlay glass
+       ══════════════════════════════════════════ -->
+  <aside id="sidebar" class="sidebar" role="complementary" aria-label="Menú principal">
+
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-emblem">🔍</div>
+        <div>
+          <div class="logo-title">Panel de Investigación</div>
+          <span class="version-pill">v1.0 Local</span>
+        </div>
+      </div>
+      <button id="sidebar-close-btn" class="glass-icon-btn" aria-label="Cerrar panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="sidebar-scroll">
+
+      <!-- ── Sección: Investigaciones ── -->
+      <div class="sb-section">
+        <div class="sb-section-header">
+          <span>Investigaciones</span>
+          <button id="new-investigation-btn" class="glass-icon-btn sm" title="Nueva investigación" aria-label="Nueva investigación">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div id="investigations-list" class="investigations-list">
+          <div class="empty-state-sidebar">
+            <span>Sin investigaciones</span>
+            <small>Crea tu primer caso</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="sb-divider"></div>
+
+      <!-- ── Sección: Acciones ── -->
+      <div class="sb-section">
+        <div class="sb-section-header"><span>Acciones</span></div>
+
+        <button class="sb-action-btn" id="sb-export-btn">
+          <span class="sb-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </span>
+          <span>Exportar caso actual</span>
+        </button>
+
+        <button class="sb-action-btn" id="import-btn">
+          <span class="sb-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </span>
+          <span>Importar caso</span>
+        </button>
+
+        <button class="sb-action-btn" id="sb-share-btn">
+          <span class="sb-action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </span>
+          <span>Compartir investigación</span>
+        </button>
+      </div>
+
+      <div class="sb-divider"></div>
+
+      <!-- ── Sección: Configuración (colapsable) ── -->
+      <div class="sb-section">
+        <button class="sb-section-header sb-collapsible" id="settings-toggle" aria-expanded="false">
+          <span>Configuración</span>
+          <svg class="sb-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <div class="sb-collapsible-body" id="settings-body">
+
+          <!-- ── Apariencia ── -->
+          <div class="sb-settings-group">
+            <div class="sb-settings-label">Apariencia</div>
+
+            <div class="sb-setting-row" id="setting-theme">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span>Tema</span>
+              </div>
+              <div class="theme-seg" id="theme-seg-btn">
+                <span class="tseg-opt" data-theme="dark">Oscuro</span>
+                <span class="tseg-opt active" data-theme="light">Claro</span>
+              </div>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                <span>Tamaño de texto</span>
+              </div>
+              <select class="sb-select" id="setting-font-size" data-setting="fontSize">
+                <option value="0.9">Pequeño</option>
+                <option value="1" selected>Normal</option>
+                <option value="1.1">Grande</option>
+                <option value="1.2">Muy grande</option>
+              </select>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                <span>Radio de tarjetas</span>
+              </div>
+              <select class="sb-select" id="setting-card-radius" data-setting="cardRadius">
+                <option value="sharp">Angular</option>
+                <option value="normal" selected>Normal</option>
+                <option value="rounded">Redondeado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ── Tablero ── -->
+          <div class="sb-settings-group">
+            <div class="sb-settings-label">Tablero</div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" width="14" height="14"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                <span>Cuadrícula al abrir</span>
+              </div>
+              <label class="toggle-switch" title="Mostrar cuadrícula por defecto">
+                <input type="checkbox" id="setting-grid-check" data-setting="defaultGrid">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                <span>Snap a cuadrícula</span>
+              </div>
+              <label class="toggle-switch" title="Snap por defecto">
+                <input type="checkbox" id="setting-snap-check" data-setting="defaultSnap">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M3 3l18 18M9 9H3v12h12v-6"/><path d="M21 3v12h-6"/></svg>
+                <span>Tamaño de cuadrícula</span>
+              </div>
+              <select class="sb-select" id="setting-grid-size" data-setting="gridSize">
+                <option value="24">Fina (24px)</option>
+                <option value="40" selected>Normal (40px)</option>
+                <option value="60">Gruesa (60px)</option>
+                <option value="80">Grande (80px)</option>
+              </select>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="5" y1="12" x2="16" y2="12"/><path d="M12 5l7 7-7 7"/></svg>
+                <span>Grosor de conexiones</span>
+              </div>
+              <select class="sb-select" id="setting-conn-width" data-setting="connectionWidth">
+                <option value="1.5">Fino</option>
+                <option value="2.5" selected>Normal</option>
+                <option value="4">Grueso</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ── Animaciones ── -->
+          <div class="sb-settings-group">
+            <div class="sb-settings-label">Animaciones</div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Animaciones de tarjetas</span>
+              </div>
+              <label class="toggle-switch" title="Animación pop-in al crear tarjetas">
+                <input type="checkbox" id="setting-anim-check" data-setting="cardAnimations" checked>
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12s2.545-5 7-5c4.454 0 7 5 7 5s-2.546 5-7 5c-4.455 0-7-5-7-5z"/><path d="M12 13a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                <span>Reducir movimiento</span>
+              </div>
+              <label class="toggle-switch" title="Desactiva todas las animaciones y transiciones">
+                <input type="checkbox" id="setting-reduce-motion" data-setting="reduceMotion">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- ── Accesibilidad ── -->
+          <div class="sb-settings-group">
+            <div class="sb-settings-label">Accesibilidad</div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                <span>Alto contraste</span>
+              </div>
+              <label class="toggle-switch" title="Aumenta la visibilidad de bordes y texto secundario">
+                <input type="checkbox" id="setting-high-contrast" data-setting="highContrast">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M9 12h6M12 9v6"/></svg>
+                <span>Resaltar foco del teclado</span>
+              </div>
+              <label class="toggle-switch" title="Muestra anillo de foco al navegar con teclado">
+                <input type="checkbox" id="setting-focus-ring" data-setting="focusRing" checked>
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+
+            <div class="sb-setting-row">
+              <div class="sb-setting-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                <span>Etiquetas en herramientas</span>
+              </div>
+              <label class="toggle-switch" title="Muestra etiquetas de texto bajo los iconos de herramientas">
+                <input type="checkbox" id="setting-tool-labels" data-setting="toolLabels">
+                <div class="toggle-track"><div class="toggle-knob"></div></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- ── Zona de peligro ── -->
+          <div class="sb-settings-group">
+            <div class="sb-settings-label danger">Zona de peligro</div>
+            <button class="sb-danger-btn" id="clear-data-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Borrar todos los datos locales
+            </button>
+          </div>
+
+        </div><!-- /settings-body -->
+      </div>
+
+    </div><!-- /sidebar-scroll -->
+
+    <!-- Footer -->
+    <div class="sidebar-footer-bar">
+      <span class="sf-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="11" height="11"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Datos guardados localmente (localStorage)
+      </span>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       TOPBAR — barra flotante mínima
+       ══════════════════════════════════════════ -->
+  <header id="topbar" class="topbar glass-panel" role="banner">
+    <button id="sidebar-toggle" class="glass-icon-btn" aria-label="Abrir menú" title="Menú (investigaciones, ajustes…)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/>
+      </svg>
+    </button>
+    <div class="topbar-divider"></div>
+    <div class="topbar-info">
+      <span id="investigation-name-display" class="topbar-case-name">Sin investigación activa</span>
+      <span id="investigation-privacy-badge" class="privacy-pill hidden">🔒 Privada</span>
+    </div>
+    <div class="topbar-actions">
+      <button id="export-btn" class="glass-icon-btn" aria-label="Exportar" title="Exportar caso (.json)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button id="theme-toggle" class="glass-icon-btn" aria-label="Cambiar tema" title="Cambiar tema (claro/oscuro)">
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       TOOL PANEL — vertical flotante izquierda
+       ══════════════════════════════════════════ -->
+  <div id="tool-panel" class="tool-panel glass-panel" role="toolbar" aria-label="Herramientas">
+    <button class="tool-btn active" data-tool="select" title="Seleccionar (V)" aria-label="Seleccionar">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 01.35-.15h6.87c.45 0 .67-.54.35-.85L6.35 2.85c-.31-.3-.85-.09-.85.36z"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="connect" title="Conectar tarjetas — arrastra de punto a punto (C)" aria-label="Conectar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="17" height="17"><circle cx="5.5" cy="12" r="2.5"/><circle cx="18.5" cy="12" r="2.5"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="pan" title="Mover tablero (H)" aria-label="Mover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M9 11V6.5a1.5 1.5 0 013 0V11"/><path d="M12 11V5.5a1.5 1.5 0 013 0V11"/><path d="M15 11V8a1.5 1.5 0 013 0v6a6 6 0 01-6 6H9a6 6 0 01-5.24-3.09L2 15"/><path d="M6 11V8.5a1.5 1.5 0 00-3 0V13"/></svg>
+    </button>
+    <div class="tool-separator"></div>
+    <button id="grid-toggle-btn" class="tool-btn" title="Cuadrícula (G)" aria-label="Cuadrícula">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" width="17" height="17"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+    </button>
+    <button id="snap-toggle-btn" class="tool-btn" title="Snap a cuadrícula (S)" aria-label="Snap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       FAB — añadir tarjeta (abajo izquierda)
+       ══════════════════════════════════════════ -->
+  <div id="add-fab-wrap" class="add-fab-wrap">
+    <div id="fab-menu" class="fab-menu glass-panel" aria-hidden="true">
+      <button class="fab-card-btn" data-type="timeline" id="fabc-timeline"><span class="fbc-icon">🗓️</span><span class="fbc-label">Timeline</span></button>
+      <button class="fab-card-btn" data-type="link"     id="fabc-link"    ><span class="fbc-icon">🔗</span><span class="fbc-label">Link</span></button>
+      <button class="fab-card-btn" data-type="event"    id="fabc-event"   ><span class="fbc-icon">📅</span><span class="fbc-label">Evento</span></button>
+      <button class="fab-card-btn" data-type="image"    id="fabc-image"   ><span class="fbc-icon">📸</span><span class="fbc-label">Imagen</span></button>
+      <button class="fab-card-btn" data-type="person"   id="fabc-person"  ><span class="fbc-icon">👤</span><span class="fbc-label">Persona</span></button>
+      <button class="fab-card-btn" data-type="note"     id="fabc-note"    ><span class="fbc-icon">📝</span><span class="fbc-label">Nota</span></button>
+    </div>
+    <button id="fab-main" class="fab-main" aria-label="Añadir tarjeta" aria-expanded="false">
+      <svg id="fab-icon-plus"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <svg id="fab-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="20" height="20" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       ZOOM CONTROLS — esquina inferior derecha
+       ══════════════════════════════════════════ -->
+  <div id="zoom-controls" class="zoom-controls glass-panel" role="group" aria-label="Zoom">
+    <button id="zoom-out-btn" class="zoom-btn" title="Alejar (−)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    <span id="zoom-level" class="zoom-level">100%</span>
+    <button id="zoom-in-btn"  class="zoom-btn" title="Acercar (+)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    <div class="zoom-sep"></div>
+    <button id="zoom-reset-btn" class="zoom-btn" title="Centrar vista (0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       CONTEXT MENUS
+       ══════════════════════════════════════════ -->
+  <div id="context-menu"            class="context-menu glass-panel hidden" role="menu">
+    <div class="cmenu-item" data-action="add-note"     role="menuitem">📝 Añadir Nota</div>
+    <div class="cmenu-item" data-action="add-person"   role="menuitem">👤 Añadir Persona</div>
+    <div class="cmenu-item" data-action="add-image"    role="menuitem">📸 Añadir Imagen</div>
+    <div class="cmenu-item" data-action="add-event"    role="menuitem">📅 Añadir Evento</div>
+    <div class="cmenu-item" data-action="add-link"     role="menuitem">🔗 Añadir Link</div>
+    <div class="cmenu-item" data-action="add-timeline" role="menuitem">🗓️ Añadir Timeline</div>
+    <div class="cmenu-sep"></div>
+    <div class="cmenu-item" data-action="zoom-reset"   role="menuitem">🎯 Centrar vista</div>
+    <div class="cmenu-item" data-action="zoom-in"      role="menuitem">🔍 Acercar</div>
+    <div class="cmenu-item" data-action="zoom-out"     role="menuitem">🔎 Alejar</div>
+  </div>
+
+  <div id="card-context-menu"       class="context-menu glass-panel hidden" role="menu">
+    <div class="cmenu-item" data-action="edit"      role="menuitem">✏️ Editar</div>
+    <div class="cmenu-item" data-action="duplicate" role="menuitem">📋 Duplicar</div>
+    <div class="cmenu-sep"></div>
+    <div class="cmenu-item danger" data-action="delete" role="menuitem">🗑️ Eliminar tarjeta</div>
+  </div>
+
+  <div id="connection-context-menu" class="context-menu glass-panel hidden" role="menu">
+    <div class="cmenu-item" data-action="edit-connection"   role="menuitem">✏️ Editar conexión</div>
+    <div class="cmenu-sep"></div>
+    <div class="cmenu-item danger" data-action="delete-connection" role="menuitem">🗑️ Eliminar conexión</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MODALS
+       ══════════════════════════════════════════ -->
+
+  <!-- Compartir -->
+  <div id="modal-share" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <div class="modal glass-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="share-title">Compartir Investigación</h2>
+        <button class="modal-close" data-modal="modal-share" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <p class="share-desc-top">Exporta o comparte tu investigación con otras personas.</p>
+
+        <div class="share-option" id="share-opt-download">
+          <div class="share-opt-icon">⬇️</div>
+          <div class="share-opt-info">
+            <div class="share-opt-title">Descargar archivo JSON</div>
+            <div class="share-opt-sub">Guarda el caso completo en tu dispositivo</div>
+          </div>
+          <button class="btn btn-primary btn-sm" id="share-download-btn">Descargar</button>
+        </div>
+
+        <div class="share-option" id="share-opt-clipboard">
+          <div class="share-opt-icon">📋</div>
+          <div class="share-opt-info">
+            <div class="share-opt-title">Copiar al portapapeles</div>
+            <div class="share-opt-sub">Copia el JSON para pegarlo donde quieras</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="share-clipboard-btn">Copiar</button>
+        </div>
+
+        <div class="share-sep">Próximamente (requiere backend)</div>
+
+        <div class="share-option share-option-disabled">
+          <div class="share-opt-icon">🔗</div>
+          <div class="share-opt-info">
+            <div class="share-opt-title">Generar enlace compartible</div>
+            <div class="share-opt-sub">Un link único para compartir tu caso</div>
+          </div>
+          <span class="backend-badge">Backend</span>
+        </div>
+
+        <div class="share-option share-option-disabled">
+          <div class="share-opt-icon">👥</div>
+          <div class="share-opt-info">
+            <div class="share-opt-title">Colaboración en tiempo real</div>
+            <div class="share-opt-sub">Edita simultáneamente con tu equipo</div>
+          </div>
+          <span class="backend-badge">Backend</span>
+        </div>
+
+        <div class="share-option share-option-disabled">
+          <div class="share-opt-icon">🔒</div>
+          <div class="share-opt-info">
+            <div class="share-opt-title">Compartir con permisos</div>
+            <div class="share-opt-sub">Solo lectura, edición o administración</div>
+          </div>
+          <span class="backend-badge">Backend</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-modal="modal-share">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nueva/Editar investigación -->
+  <div id="modal-investigation" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-inv-title">Nueva Investigación</h2>
+        <button class="modal-close" data-modal="modal-investigation" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="inv-name">Nombre del caso *</label>
+          <input type="text" id="inv-name" placeholder="Ej: Caso García, El Misterio del Lago…" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="inv-description">Descripción</label>
+          <textarea id="inv-description" placeholder="Descripción breve…" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label" for="inv-private">
+            <input type="checkbox" id="inv-private">
+            <span class="checkbox-custom"></span>
+            <span>Marcar como privada 🔒</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-modal="modal-investigation">Cancelar</button>
+        <button class="btn btn-primary" id="save-investigation-btn">Crear investigación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nota -->
+  <div id="modal-note" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">📝 Nota</h2><button class="modal-close" data-modal="modal-note" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="note-title">Título</label><input type="text" id="note-title" placeholder="Título…"></div>
+        <div class="form-group"><label for="note-content">Contenido</label><textarea id="note-content" placeholder="Escribe aquí…" rows="7" class="font-mono"></textarea></div>
+        <div class="form-group">
+          <label>Color</label>
+          <div class="color-picker" id="note-color-picker">
+            <button class="color-option active" data-color="#fef9c3" style="background:#fef9c3" title="Amarillo"></button>
+            <button class="color-option" data-color="#fce7f3" style="background:#fce7f3" title="Rosa"></button>
+            <button class="color-option" data-color="#dcfce7" style="background:#dcfce7" title="Verde"></button>
+            <button class="color-option" data-color="#dbeafe" style="background:#dbeafe" title="Azul"></button>
+            <button class="color-option" data-color="#f3e8ff" style="background:#f3e8ff" title="Morado"></button>
+            <button class="color-option" data-color="#1e293b" style="background:#1e293b" title="Oscuro"></button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-note">Cancelar</button><button class="btn btn-primary" id="save-note-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Persona -->
+  <div id="modal-person" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">👤 Persona</h2><button class="modal-close" data-modal="modal-person" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="person-photo-section">
+          <div class="person-avatar-preview" id="person-avatar-preview">?</div>
+          <div class="person-photo-inputs">
+            <div class="form-group" style="margin-bottom:8px"><label for="person-photo-url">URL de foto</label><input type="url" id="person-photo-url" placeholder="https://…"></div>
+            <button class="btn btn-ghost btn-sm" id="preview-photo-btn" type="button">Vista previa</button>
+          </div>
+        </div>
+        <div class="form-group"><label for="person-name">Nombre *</label><input type="text" id="person-name" placeholder="Nombre completo…"></div>
+        <div class="form-group"><label for="person-role">Rol</label>
+          <select id="person-role">
+            <option value="suspect">🔴 Sospechoso</option><option value="witness">🟡 Testigo</option>
+            <option value="victim">🟠 Víctima</option><option value="detective">🔵 Detective</option>
+            <option value="accomplice">🟣 Cómplice</option><option value="unknown">⚪ Desconocido</option><option value="other">⚫ Otro</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="person-description">Notas</label><textarea id="person-description" placeholder="Descripción, relaciones…" rows="4"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-person">Cancelar</button><button class="btn btn-primary" id="save-person-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Imagen -->
+  <div id="modal-image" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">📸 Imagen</h2><button class="modal-close" data-modal="modal-image" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="image-title">Título</label><input type="text" id="image-title" placeholder="Título de la imagen…"></div>
+        <div class="form-group"><label for="image-url">URL de imagen</label><input type="url" id="image-url" placeholder="https://example.com/foto.jpg"></div>
+        <div class="form-group">
+          <label>O sube desde tu equipo</label>
+          <div class="file-upload-area" id="image-upload-area" tabindex="0" role="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p>Arrastra o haz clic para seleccionar</p>
+            <input type="file" id="image-file" accept="image/*" style="display:none">
+          </div>
+          <div id="image-preview" class="image-preview hidden"><img id="image-preview-img" src="" alt="Vista previa"><button class="btn btn-ghost btn-sm" id="clear-image-btn" type="button">Quitar imagen</button></div>
+        </div>
+        <div class="form-group"><label for="image-description">Descripción</label><textarea id="image-description" placeholder="Descripción, notas…" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-image">Cancelar</button><button class="btn btn-primary" id="save-image-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Evento -->
+  <div id="modal-event" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">📅 Evento</h2><button class="modal-close" data-modal="modal-event" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="event-title">Título *</label><input type="text" id="event-title" placeholder="¿Qué ocurrió?"></div>
+        <div class="form-row">
+          <div class="form-group"><label for="event-date">Fecha</label><input type="date" id="event-date"></div>
+          <div class="form-group"><label for="event-time">Hora</label><input type="time" id="event-time"></div>
+        </div>
+        <div class="form-group"><label for="event-location">Lugar</label><input type="text" id="event-location" placeholder="¿Dónde?"></div>
+        <div class="form-group"><label for="event-description">Descripción</label><textarea id="event-description" placeholder="Detalles…" rows="4"></textarea></div>
+        <div class="form-group">
+          <label>Importancia</label>
+          <div class="importance-selector" id="importance-selector">
+            <button class="importance-btn" data-level="low">Baja</button>
+            <button class="importance-btn active" data-level="medium">Media</button>
+            <button class="importance-btn" data-level="high">Alta</button>
+            <button class="importance-btn danger" data-level="critical">⚡ Crítica</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-event">Cancelar</button><button class="btn btn-primary" id="save-event-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Link -->
+  <div id="modal-link" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">🔗 Link</h2><button class="modal-close" data-modal="modal-link" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="link-title">Título</label><input type="text" id="link-title" placeholder="Nombre del link…"></div>
+        <div class="form-group"><label for="link-url">URL *</label><input type="url" id="link-url" placeholder="https://…"></div>
+        <div class="form-group"><label for="link-description">¿Por qué es relevante?</label><textarea id="link-description" placeholder="Notas…" rows="4"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-link">Cancelar</button><button class="btn btn-primary" id="save-link-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div id="modal-timeline" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal modal-wide">
+      <div class="modal-header"><h2 class="modal-title">🗓️ Línea de Tiempo</h2><button class="modal-close" data-modal="modal-timeline" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="timeline-title">Título</label><input type="text" id="timeline-title" placeholder="Nombre de la línea de tiempo…"></div>
+        <div class="form-group">
+          <label>Eventos</label>
+          <div id="timeline-events-list" class="timeline-events-list"></div>
+          <button id="add-timeline-event-btn" class="btn btn-ghost btn-sm" type="button" style="margin-top:8px">+ Añadir evento</button>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-timeline">Cancelar</button><button class="btn btn-primary" id="save-timeline-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Editar conexión -->
+  <div id="modal-connection" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal">
+      <div class="modal-header"><h2 class="modal-title">🔗 Editar Conexión</h2><button class="modal-close" data-modal="modal-connection" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label for="connection-label">Etiqueta</label><input type="text" id="connection-label" placeholder="Ej: sospechoso de, relacionado con…"></div>
+        <div class="form-group">
+          <label>Color</label>
+          <div class="connection-color-picker" id="connection-color-picker">
+            <button class="conn-color-btn active" data-color="red"    style="background:#ef4444"></button>
+            <button class="conn-color-btn" data-color="yellow" style="background:#eab308"></button>
+            <button class="conn-color-btn" data-color="blue"   style="background:#3b82f6"></button>
+            <button class="conn-color-btn" data-color="green"  style="background:#22c55e"></button>
+            <button class="conn-color-btn" data-color="white"  style="background:#cbd5e1"></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estilo</label>
+          <div class="style-selector" id="connection-style-selector">
+            <button class="style-btn active" data-style="solid">── Sólida</button>
+            <button class="style-btn" data-style="dashed">╌╌ Punteada</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-connection">Cancelar</button><button class="btn btn-primary" id="save-connection-btn">Guardar</button></div>
+    </div>
+  </div>
+
+  <!-- Confirmar -->
+  <div id="modal-confirm" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal glass-modal modal-sm">
+      <div class="modal-header"><h2 class="modal-title" id="confirm-title">¿Confirmar?</h2><button class="modal-close" data-modal="modal-confirm" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body"><p id="confirm-message" class="confirm-message"></p></div>
+      <div class="modal-footer"><button class="btn btn-ghost" data-modal="modal-confirm">Cancelar</button><button class="btn btn-danger" id="confirm-action-btn">Eliminar</button></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Hidden file inputs -->
+  <input type="file" id="import-file-input"  accept=".json"   style="display:none">
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/connections.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/board.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
